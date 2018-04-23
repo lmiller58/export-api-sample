@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Relativity.Services.DataContracts;
 using Relativity.Services.Objects;
 using Relativity.Services.ServiceProxy;
 
@@ -30,7 +31,7 @@ namespace ExportApiSample
 
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
-                
+
             }
 
             Pause();
@@ -45,8 +46,8 @@ namespace ExportApiSample
         /// <param name="servicesUrl"></param>
         /// <returns></returns>
         private static ServiceFactory GetServiceFactory(
-            string username, 
-            string password, 
+            string username,
+            string password,
             string servicesUrl)
         {
             const string ending = "/Relativity.REST/api";
