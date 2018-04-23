@@ -31,7 +31,7 @@ namespace ExportApiSample
 
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
-
+                
             }
 
             Pause();
