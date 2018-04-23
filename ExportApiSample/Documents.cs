@@ -13,7 +13,7 @@ namespace ExportApiSample
 {
     public static class Documents
     {
-        public const int TYPE_ID = 10;
+        public const int DOC_TYPE_ID = 10;
 
 
         /// <summary>
@@ -69,18 +69,15 @@ namespace ExportApiSample
             // specify a batch size
             const int BATCH_SIZE = 200;
 
-            // specify the fields we want returned
-            var fields = new List<FieldRef>
-            {
-                new FieldRef{Name = "Control Number"},
-                new FieldRef{Name = "Extracted Text"},
-                new FieldRef{Name = "Custodian - Single Choice"}
-            };
+            // get all of the fields on the Document object
+            IEnumerable<FieldRef> fields = await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
 
             // query the workspace for all documents
             var query = new QueryRequest
             {
-                ObjectType = new ObjectTypeRef { ArtifactTypeID = TYPE_ID },
+                ObjectType = new ObjectTypeRef { ArtifactTypeID = DOC_TYPE_ID },
+                // don't need to return too many characters
+                // for export initialization
                 MaxCharactersForLongTextValues = 25,
                 Fields = fields
             };
@@ -118,6 +115,7 @@ namespace ExportApiSample
                     {
                         
                     }
+                    currBatchCount++;
                 }
                 else
                 {
