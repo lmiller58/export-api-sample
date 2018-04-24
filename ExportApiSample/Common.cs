@@ -43,7 +43,8 @@ namespace ExportApiSample
         public const int FIELD_OBJ_TYPE_ID = 14;
 
         /// <summary>
-        /// Returns all of the fields for a given
+        /// Returns all of the fields for a given object type.
+        /// Does not include system types.
         /// </summary>
         /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
