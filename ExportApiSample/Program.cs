@@ -32,7 +32,7 @@ namespace ExportApiSample
 
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
-                IEnumerable<FieldRef> fields = Common.GetAllFieldsForObject(objMgr, workspaceId: 1017273, objectTypeId: 10).Result;
+                
             }
 
             Pause();

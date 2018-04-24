@@ -56,7 +56,7 @@ namespace ExportApiSample
             const int BATCH_SIZE = 200;
 
             // get all of the fields on the Document object
-            IEnumerable<Field> fields = 
+            List<Field> fields = 
                 await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
 
             IEnumerable<FieldRef> fieldRefs = fields.Select(x => new FieldRef {ArtifactID = x.ArtifactID});
@@ -104,7 +104,14 @@ namespace ExportApiSample
                 foreach (RelativityObjectSlim obj in docBatch)
                 {
                     List<object> fieldValues = obj.Values;
-                    
+                    // this list of fields should be in the same order as that of our requests.
+                    if (fieldValues.Count != fields.Count)
+                    {
+                        string err = "Lengths of returned fields do not match:\n" +
+                                    $"Queried: {fields.Count}\n" + 
+                                    $"Returned: {fieldValues.Count}";
+                        throw new ApplicationException(err);
+                    }
                 }
                 currBatchCount++;
             }

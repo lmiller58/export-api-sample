@@ -37,7 +37,7 @@ namespace ExportApiSample
 
         public const int FIELD_OBJ_TYPE_ID = 14;
 
-        public static async Task<IEnumerable<Field>> GetAllFieldsForObject(
+        public static async Task<List<Field>> GetAllFieldsForObject(
             IObjectManager objMgr, 
             int workspaceId, 
             int objectTypeId)
