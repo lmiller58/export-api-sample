@@ -49,7 +49,7 @@ namespace ExportApiSample
                     }
                 }
                 stopwatch.Stop();
-                Console.WriteLine($"Elapsed: {stopwatch.Elapsed.Seconds}");
+                Console.WriteLine($"Elapsed: {stopwatch.Elapsed.TotalSeconds}");
             }
 
             Pause();

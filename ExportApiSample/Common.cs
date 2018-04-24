@@ -192,9 +192,11 @@ namespace ExportApiSample
                     case FieldType.Currency:
                     case FieldType.Date:
                     case FieldType.Decimal:
-                    case FieldType.Empty:
-                    case FieldType.FixedLengthText:
+                    case FieldType.Empty:                   
                     case FieldType.WholeNumber:
+                        rowData[i] = fieldValAsStr;
+                        break;
+                    case FieldType.FixedLengthText:
                         // for some reason, we will get JSON
                         // for some fixed-length fields, so we
                         // need to clean them--this is whack
