@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using Relativity.Kepler.Transport;
 using Relativity.Services;
 using Relativity.Services.Objects;
 using Relativity.Services.Objects.DataContracts;
@@ -133,6 +136,126 @@ namespace ExportApiSample
             
             return retVal;
         }
+
+
+        /// <summary>
+        /// Appends the metadata to a file
+        /// </summary>
+        /// <param name="objMgr">Object manager service</param>
+        /// <param name="workspaceId">Artifact ID of the workspace</param>
+        /// <param name="objectId">Artifact ID of the object</param>
+        /// <param name="fieldNames">List of field names associated with the objects</param>
+        /// <param name="fieldValues">List of field values asscoiated with the objects</param>
+        /// <param name="loadFilePath">Path to the load file</param>
+        public static async Task AppendToLoadFileAsync(
+            IObjectManager objMgr,
+            int workspaceId,
+            int objectId,
+            List<Field> fieldNames, 
+            List<object> fieldValues, 
+            string loadFilePath)
+        {
+            // this list of fields should be in the same order as that of our requests.
+            if (fieldValues.Count != fieldNames.Count)
+            {
+                string err = "Lengths of queried and returned fields do not match:\n" +
+                             $"Queried: {fieldNames.Count}\n" +
+                             $"Returned: {fieldValues.Count}";
+                throw new ApplicationException(err);
+            }
+
+            string[] rowData = new string[fieldNames.Count];
+
+            for (int i = 0; i < fieldValues.Count; i++)
+            {
+                Field fieldName = fieldNames[i];
+                object fieldValue = fieldValues[i];
+                string fieldValAsStr = fieldValue?.ToString() ?? String.Empty;
+                switch (fieldName.FieldType)
+                {
+                    // types that can be directly 
+                    // converted to a string
+                    case FieldType.Currency:
+                    case FieldType.Date:
+                    case FieldType.Decimal:
+                    case FieldType.Empty:
+                    case FieldType.FixedLengthText:
+                    case FieldType.WholeNumber:
+                        rowData[i] = fieldValAsStr;
+                        break;
+                    case FieldType.LongText:
+                        string outputFileFolder = Directory.GetParent(loadFilePath).FullName;
+                        const string fileExt = ".txt";
+                        // randomly generate a GUID for the file name
+                        string outputFile = outputFileFolder + @"\" + Guid.NewGuid().ToString() + fileExt;
+                        await StreamToFileAsync(objMgr, workspaceId, objectId, fieldName, outputFile);
+                        rowData[i] = outputFile;
+                        break;
+                    case FieldType.MultipleChoice:
+                        JArray multiChoiceValues = JArray.Parse(Convert.ToString(fieldValue));
+                        List<string> multichoiceValuesNames =
+                            multiChoiceValues.Select(jToken => jToken["Name"].ToObject<string>()).ToList();
+                        rowData[i] = String.Join(";", multichoiceValuesNames);
+                        break;
+                    
+                    case FieldType.File:
+                    default:
+                        rowData[i] = String.Empty;
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Streams the text data to a file
+        /// </summary>
+        /// <param name="objMgr"></param>
+        /// <param name="workspaceId"></param>
+        /// <param name="objectId"></param>
+        /// <param name="longTextField"></param>
+        /// <param name="outputFile"></param>
+        /// <returns></returns>
+        private static async Task StreamToFileAsync(
+            IObjectManager objMgr,
+            int workspaceId,
+            int objectId,
+            Field longTextField, 
+            string outputFile)
+        {
+            // create ref to object
+            var relativityObj = new RelativityObjectRef
+            {
+                ArtifactID = objectId
+            };
+
+            // create ref to field
+            var longTextFieldRef = new FieldRef
+            {
+                ArtifactID = longTextField.ArtifactID
+            };
+
+            using (IKeplerStream ks = await objMgr.StreamLongTextAsync(
+                workspaceId, relativityObj, longTextFieldRef))
+            using (Stream s = await ks.GetStreamAsync())
+            using (var reader = new StreamReader(s))
+            using (var writer = new StreamWriter(outputFile, append: false))
+            {
+                const int BUFFER_SIZE = 5000;
+                char[] buffer = new char[BUFFER_SIZE];
+
+                int copied;
+                do
+                {
+                    copied = reader.Read(buffer, 0, BUFFER_SIZE);
+                    writer.Write(
+                        copied == BUFFER_SIZE 
+                        ? buffer 
+                        : buffer.Take(copied).ToArray());
+                    writer.Flush();
+                } while (copied > 0);
+            }
+        }
+
 
 
         /// <summary>

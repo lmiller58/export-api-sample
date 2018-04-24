@@ -18,12 +18,12 @@ namespace ExportApiSample
 
 
         /// <summary>
-        /// Exports all native files from a workspace
+        /// Exports all metadata and long text of documents from a workspace
         /// </summary>
         /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
         /// <param name="outDirectory">Directory to which we are exporting the files</param>
-        public static async void ExportNatives(IObjectManager objMgr, int workspaceId, string outDirectory)
+        public static async void ExportData(IObjectManager objMgr, int workspaceId, string outDirectory)
         {
             // check if directory exists and create
             // it if it doesn't
@@ -33,7 +33,9 @@ namespace ExportApiSample
             }
 
             // specify folder names we want
-            const string NATIVE_DIR = "NATIVES";
+
+            // currently no native document support...yet
+            // const string NATIVE_DIR = "NATIVES";
             const string EXTR_TXT_DIR = "TEXT";
 
             // if we want to batch out our export
@@ -59,6 +61,12 @@ namespace ExportApiSample
             List<Field> fields = 
                 await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
 
+            // write all of the names of the fields to the load file
+            // so they become column headings
+            IEnumerable<string> fieldNames = fields.Select(x => x.Name);
+            File.AppendAllText(loadFile, String.Join(",", fieldNames));
+
+            // convert to FieldRefs for the query
             IEnumerable<FieldRef> fieldRefs = fields.Select(x => new FieldRef {ArtifactID = x.ArtifactID});
 
             // query the workspace for all documents
@@ -104,13 +112,27 @@ namespace ExportApiSample
                 foreach (RelativityObjectSlim obj in docBatch)
                 {
                     List<object> fieldValues = obj.Values;
+
                     // this list of fields should be in the same order as that of our requests.
                     if (fieldValues.Count != fields.Count)
                     {
-                        string err = "Lengths of returned fields do not match:\n" +
+                        string err = "Lengths of queried and returned fields do not match:\n" +
                                     $"Queried: {fields.Count}\n" + 
                                     $"Returned: {fieldValues.Count}";
                         throw new ApplicationException(err);
+                    }
+
+                    for (int i = 0; i < fieldValues.Count; i++)
+                    {
+                        Field field = fields[i];
+                        object fieldValue = fieldValues[i];
+                        await Common.AppendToLoadFileAsync(
+                            objMgr, 
+                            workspaceId, 
+                            obj.ArtifactID, 
+                            fields, 
+                            fieldValues,
+                            loadFile);
                     }
                 }
                 currBatchCount++;
