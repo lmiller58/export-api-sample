@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Relativity.Kepler.Transport;
 using Relativity.Services;
@@ -197,8 +198,18 @@ namespace ExportApiSample
                         // for some reason, we will get JSON
                         // for some fixed-length fields, so we
                         // need to clean them--this is whack
-                        string cleaned = Regex.Replace(fieldValAsStr, @"\t|\n|\r", "");
-                        rowData[i] = cleaned;
+                        JObject jsonObj;
+                        bool isValidJson = IsValidJsonObject(fieldValAsStr, out jsonObj);
+                        if (isValidJson)
+                        {
+                            // add quotes
+                            rowData[i] = "\"" + jsonObj["Name"].ToObject<string>() + "\"";
+                        }
+                        else
+                        {
+                            string cleaned = Regex.Replace(fieldValAsStr, @"\t|\n|\r", "");
+                            rowData[i] = cleaned;
+                        }
                         break;
                     case FieldType.LongText:
                         // get parent folder for the load file
@@ -276,6 +287,21 @@ namespace ExportApiSample
             // write row to csv
             File.AppendAllText(loadFilePath, Environment.NewLine + String.Join(",", rowData));
         }
+
+        private static bool IsValidJsonObject(string input, out JObject result)
+        {
+            try
+            {
+                result = JObject.Parse(input);
+                return true;
+            }
+            catch (JsonReaderException)
+            {
+                result = null;
+                return false;
+            }
+        }
+
 
         /// <summary>
         /// Streams the text data to a file
