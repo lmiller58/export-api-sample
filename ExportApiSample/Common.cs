@@ -56,9 +56,11 @@ namespace ExportApiSample
                 Condition = condition.ToQueryString(),
                 Fields = new List<FieldRef>
                 {
+                    //new FieldRef() { Name = "Name" },
                     new FieldRef { Name = "Field Type" }
                 },
-                IncludeIDWindow = false 
+                IncludeIDWindow = false ,
+                IncludeNameInQueryResult = true
             };
 
             int start = 0;
@@ -129,7 +131,8 @@ namespace ExportApiSample
                 var fieldToAdd = new Field
                 {
                     ArtifactID = field.ArtifactID,
-                    FieldType = type
+                    FieldType = type,
+                    Name = field.Name
                 };
                 retVal.Add(fieldToAdd);
             }
