@@ -33,7 +33,7 @@ namespace ExportApiSample
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
                 const string outPutDir = @"C:\Data\Export";
-                Documents.ExportData(objMgr, workspaceId: 1017273, outDirectory:outPutDir).Wait();
+                Documents.ExportDataAsync(objMgr, workspaceId: 1017273, outDirectory:outPutDir).Wait();
             }
 
             Pause();

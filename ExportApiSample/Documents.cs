@@ -23,7 +23,7 @@ namespace ExportApiSample
         /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
         /// <param name="outDirectory">Directory to which we are exporting the files</param>
-        public static async Task ExportData(IObjectManager objMgr, int workspaceId, string outDirectory)
+        public static async Task ExportDataAsync(IObjectManager objMgr, int workspaceId, string outDirectory)
         {
             // check if directory exists and create
             // it if it doesn't

@@ -234,6 +234,20 @@ namespace ExportApiSample
                         break;
 
                     case FieldType.YesNo:
+                        // handle case where we get a true/false instead of JSON
+                        var boolMap = new Dictionary<string, string>
+                        {
+                            { "True", "Yes" },
+                            { "False", "No" },
+                            { "", "" }
+                        };
+
+                        if (boolMap.ContainsKey(fieldValAsStr))
+                        {
+                            rowData[i] = boolMap[fieldValAsStr];
+                            break;
+                        }
+
                         JArray yesNoArray = JArray.Parse(fieldValAsStr);
                         List<string> yesNoValues = yesNoArray.Select(jToken => jToken["Name"].ToObject<string>()).ToList();
                         rowData[i] = String.Join("; ", yesNoValues);
