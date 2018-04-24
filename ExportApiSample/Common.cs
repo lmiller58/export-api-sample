@@ -201,14 +201,41 @@ namespace ExportApiSample
                         await StreamToFileAsync(objMgr, workspaceId, objectId, fieldName, outputFile);
                         rowData[i] = outputFile;
                         break;
+
                     case FieldType.MultipleChoice:
                         JArray multiChoiceValues = JArray.Parse(Convert.ToString(fieldValue));
                         List<string> multichoiceValuesNames =
                             multiChoiceValues.Select(jToken => jToken["Name"].ToObject<string>()).ToList();
                         rowData[i] = String.Join(";", multichoiceValuesNames);
-                        break;
+                        break;                 
                     
+                    case FieldType.SingleChoice:
+                        JObject fieldRef = JObject.Parse(fieldValAsStr);
+                        rowData[i] = fieldRef["Name"].ToObject<string>();
+                        break;
+
+                    case FieldType.MultipleObject:
+                    case FieldType.SingleObject:
+                        // TODO: actual implementaion
+                        rowData[i] = fieldValAsStr;
+                        break;
+
                     case FieldType.File:
+                        throw new NotImplementedException(
+                            "Export API does not support native file streaming yet.");
+
+                    case FieldType.User:
+                        JArray userFieldArr = JArray.Parse(fieldValAsStr);
+                        List<string> userFieldVals = userFieldArr.Select(x => x["Name"].ToObject<string>()).ToList();
+                        rowData[i] = string.Join("; ", userFieldVals);
+                        break;
+
+                    case FieldType.YesNo:
+                        JArray yesNoArray = JArray.Parse(fieldValAsStr);
+                        List<string> yesNoValues = yesNoArray.Select(jToken => jToken["Name"].ToObject<string>()).ToList();
+                        rowData[i] = String.Join("; ", yesNoValues);
+                        break;
+
                     default:
                         rowData[i] = String.Empty;
                         break;
