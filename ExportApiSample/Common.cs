@@ -43,5 +43,24 @@ namespace ExportApiSample
                 .IDWindow
                 .Select(id => new FieldRef {ArtifactID = id});
         }
+
+
+        /// <summary>
+        /// Returns the number of digits in an integer (base 10). 
+        /// If negative, the negative sign does not count.
+        /// </summary>
+        /// <param name="num"></param>
+        /// <returns></returns>
+        public static int NumDigits(long num)
+        {
+            if (num == 0)
+            {
+                return 1;
+            }
+            num = Math.Abs(num);
+
+            return (int)Math.Log10(num);
+        }
+
     }
 }

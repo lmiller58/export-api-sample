@@ -17,24 +17,6 @@ namespace ExportApiSample
 
 
         /// <summary>
-        /// Returns the number of digits in an integer (base 10). 
-        /// If negative, the negative sign does not count.
-        /// </summary>
-        /// <param name="num"></param>
-        /// <returns></returns>
-        private static int NumDigits(long num)
-        {
-            if (num == 0)
-            {
-                return 1;
-            }
-            num = Math.Abs(num);
-
-            return (int) Math.Log10(num);
-        }
-
-
-        /// <summary>
         /// Exports all native files from a workspace
         /// </summary>
         /// <param name="objMgr"></param>
@@ -123,5 +105,6 @@ namespace ExportApiSample
                 }
             }
         }
+
     }
 }
