@@ -39,6 +39,9 @@ namespace ExportApiSample
             // into folders
             const string BATCH_PREFIX = "VOL_";
 
+            // specify a load file name
+            string loadFile = $"{outDirectory}\\load.csv";
+
             // folder structure will look like this:
             /*   VOL_0001 
              *      NATIVES
@@ -52,7 +55,8 @@ namespace ExportApiSample
             const int BATCH_SIZE = 200;
 
             // get all of the fields on the Document object
-            IEnumerable<FieldRef> fields = await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
+            IEnumerable<FieldRef> fields = 
+                await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
 
             // query the workspace for all documents
             var query = new QueryRequest
@@ -86,17 +90,18 @@ namespace ExportApiSample
 
             while (true)
             {
-                RelativityObjectSlim[] currentBatch =
+                RelativityObjectSlim[] docBatch =
                     await objMgr.RetrieveNextResultsBlockFromExportAsync(workspaceId, initResults.RunID, BATCH_SIZE);
 
-                if (currentBatch == null || !currentBatch.Any())
+                if (docBatch == null || !docBatch.Any())
                 {
                     break;
                 }
-                await Console.Out.WriteLineAsync($"Exporting batch {currBatchCount} of {batchCountDefinitely} (size {currentBatch.Length}).");
-                foreach (RelativityObjectSlim obj in currentBatch)
+                await Console.Out.WriteLineAsync($"Exporting batch {currBatchCount} of {batchCountDefinitely} (size {docBatch.Length}).");
+                foreach (RelativityObjectSlim obj in docBatch)
                 {
-
+                    List<object> fieldValues = obj.Values;
+                    
                 }
                 currBatchCount++;
             }

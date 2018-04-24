@@ -9,10 +9,30 @@ using Relativity.Services.Objects.DataContracts;
 namespace ExportApiSample
 {
     /// <summary>
-    /// Contains public common methods. Couldn't think of a better name.
+    /// Contains public common methods and elements. Couldn't think of a better name.
     /// </summary>
     public static class Common
     {
+        /// <summary>
+        /// Aliases for the proper field names as shown in Relativity
+        /// </summary>
+        public static class FieldTypes
+        {
+            public const string DATE = "Date";
+            public const string DECIMAL = "Decimal";
+            public const string FILE = "File";
+            public const string FIXED_LENGTH_TXT = "Fixed-Length Text";
+            public const string LONG_TXT = "Long Text";
+            public const string MULTI_CHOICE = "Multiple Choice";
+            public const string MULTI_OBJECT = "Multiple Object";
+            public const string SINGLE_CHOICE = "Single Choice";
+            public const string SINGLE_OBJECT = "Single Object";
+            public const string USER = "User";
+            public const string WHOLE_NUMBER = "Whole Number";
+            public const string YES_NO = "Yes/No";
+        }
+
+
         public const int FIELD_OBJ_TYPE_ID = 14;
 
         public static async Task<IEnumerable<FieldRef>> GetAllFieldsForObject(
@@ -29,12 +49,15 @@ namespace ExportApiSample
             {
                 ObjectType = new ObjectTypeRef { ArtifactTypeID = FIELD_OBJ_TYPE_ID },
                 Condition = condition.ToQueryString(),
-                Fields = new List<FieldRef>(),
+                Fields = new List<FieldRef>
+                {
+                    new FieldRef { Name = "Field Type" }
+                },
                 IncludeIDWindow = true  // just want the Artifact IDs
             };
 
             int start = 0;
-            const int LENGTH = 1;
+            const int LENGTH = 100;
 
             QueryResultSlim result = await objMgr.QuerySlimAsync(workspaceId, queryRequest, start, LENGTH);
             

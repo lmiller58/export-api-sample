@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Relativity.Services.DataContracts;
 using Relativity.Services.Objects;
+using Relativity.Services.Objects.DataContracts;
 using Relativity.Services.ServiceProxy;
 
 namespace ExportApiSample
@@ -19,7 +20,7 @@ namespace ExportApiSample
             string[] urlUserPassword = File.ReadAllLines(credsFile);
             string url = urlUserPassword[0];
             string user = urlUserPassword[1];
-            string password = urlUserPassword[3];
+            string password = urlUserPassword[2];
 
             ServiceFactory factory = GetServiceFactory(user, password, url);
             if (factory == null)
@@ -31,7 +32,7 @@ namespace ExportApiSample
 
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
-                
+                IEnumerable<FieldRef> fields = Common.GetAllFieldsForObject(objMgr, workspaceId: 1017273, objectTypeId: 10).Result;
             }
 
             Pause();
