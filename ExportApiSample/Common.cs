@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Relativity.Kepler.Transport;
@@ -193,7 +194,11 @@ namespace ExportApiSample
                     case FieldType.Empty:
                     case FieldType.FixedLengthText:
                     case FieldType.WholeNumber:
-                        rowData[i] = fieldValAsStr;
+                        // for some reason, we will get JSON
+                        // for some fixed-length fields, so we
+                        // need to clean them--this is whack
+                        string cleaned = Regex.Replace(fieldValAsStr, @"\t|\n|\r", "");
+                        rowData[i] = cleaned;
                         break;
                     case FieldType.LongText:
                         // get parent folder for the load file
