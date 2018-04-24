@@ -223,9 +223,11 @@ namespace ExportApiSample
                         const string fileExt = ".txt";
 
                         // randomly generate a GUID for the file name
-                        string outputFile = outputFileFolder + @"\" + Guid.NewGuid().ToString() + fileExt;
+                        string textFileName = Guid.NewGuid().ToString() + fileExt;
+                        string outputFile = outputFileFolder + @"\" + textFileName;
                         await StreamToFileAsync(objMgr, workspaceId, objectId, fieldName, outputFile);
-                        rowData[i] = outputFile;
+                        string relativePath = @".\" + TEXT_FOLDER_NAME + @"\" + textFileName;
+                        rowData[i] = relativePath;
                         break;
 
                     case FieldType.MultipleChoice:
