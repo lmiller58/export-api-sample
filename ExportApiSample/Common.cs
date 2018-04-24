@@ -42,15 +42,31 @@ namespace ExportApiSample
 
         public const int FIELD_OBJ_TYPE_ID = 14;
 
+        /// <summary>
+        /// Returns all of the fields for a given
+        /// </summary>
+        /// <param name="objMgr"></param>
+        /// <param name="workspaceId"></param>
+        /// <param name="objectTypeId"></param>
+        /// <returns></returns>
         public static async Task<List<Field>> GetAllFieldsForObject(
             IObjectManager objMgr, 
             int workspaceId, 
             int objectTypeId)
         {
-            var condition = new WholeNumberCondition(
+            var objectTypeCondition = new WholeNumberCondition(
                 "Object Type Artifact Type ID", 
                 NumericConditionEnum.EqualTo, 
                 objectTypeId);
+
+            // we want to exclude system types
+            var textCondition = new TextCondition("Name", TextConditionEnum.Like, "System");
+            NotCondition excludeSystemCondition = textCondition.Negate();
+
+            var condition = new CompositeCondition(
+                objectTypeCondition, 
+                CompositeConditionEnum.And, 
+                excludeSystemCondition);
 
             var queryRequest = new QueryRequest
             {
@@ -200,17 +216,17 @@ namespace ExportApiSample
                         // for some reason, we will get JSON
                         // for some fixed-length fields, so we
                         // need to clean them--this is whack
-                        JObject jsonObj;
-                        bool isValidJson = IsValidJsonObject(fieldValAsStr, out jsonObj);
-                        if (isValidJson)
-                        {
-                            // add quotes
-                            rowData[i] = "\"" + jsonObj["Name"].ToObject<string>() + "\"";
-                        }
-                        else
+                        //JObject jsonObj;
+                        //bool isValidJson = IsValidJsonObject(fieldValAsStr, out jsonObj);
+                        //if (isValidJson)
+                        //{
+                        //    // add quotes
+                        //    rowData[i] = "\"" + jsonObj["Name"].ToObject<string>() + "\"";
+                        //}
+                        //else
                         {
                             string cleaned = Regex.Replace(fieldValAsStr, @"\t|\n|\r", "");
-                            rowData[i] = cleaned;
+                            rowData[i] = "\"" + cleaned + "\"";
                         }
                         break;
                     case FieldType.LongText:
