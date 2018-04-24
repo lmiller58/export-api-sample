@@ -166,6 +166,8 @@ namespace ExportApiSample
 
             string[] rowData = new string[fieldNames.Count];
 
+            const string TEXT_FOLDER_NAME = "TEXT";
+
             for (int i = 0; i < fieldValues.Count; i++)
             {
                 Field fieldName = fieldNames[i];
@@ -184,8 +186,16 @@ namespace ExportApiSample
                         rowData[i] = fieldValAsStr;
                         break;
                     case FieldType.LongText:
-                        string outputFileFolder = Directory.GetParent(loadFilePath).FullName;
+                        // get parent folder for the load file
+                        string parentDir = Directory.GetParent(loadFilePath).FullName;
+                        string outputFileFolder = parentDir + @"\" + TEXT_FOLDER_NAME;
+                        // check if directory exists
+                        if (!Directory.Exists(outputFileFolder))
+                        {
+                            Directory.CreateDirectory(outputFileFolder);
+                        }
                         const string fileExt = ".txt";
+
                         // randomly generate a GUID for the file name
                         string outputFile = outputFileFolder + @"\" + Guid.NewGuid().ToString() + fileExt;
                         await StreamToFileAsync(objMgr, workspaceId, objectId, fieldName, outputFile);
@@ -204,6 +214,9 @@ namespace ExportApiSample
                         break;
                 }
             }
+
+            // write row to csv
+            File.AppendAllText(loadFilePath, String.Join(",", rowData));
         }
 
         /// <summary>

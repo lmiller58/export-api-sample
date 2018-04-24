@@ -23,7 +23,7 @@ namespace ExportApiSample
         /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
         /// <param name="outDirectory">Directory to which we are exporting the files</param>
-        public static async void ExportData(IObjectManager objMgr, int workspaceId, string outDirectory)
+        public static async Task ExportData(IObjectManager objMgr, int workspaceId, string outDirectory)
         {
             // check if directory exists and create
             // it if it doesn't
@@ -32,28 +32,9 @@ namespace ExportApiSample
                 Directory.CreateDirectory(outDirectory);
             }
 
-            // specify folder names we want
-
-            // currently no native document support...yet
-            // const string NATIVE_DIR = "NATIVES";
-            const string EXTR_TXT_DIR = "TEXT";
-
-            // if we want to batch out our export
-            // into folders
-            const string BATCH_PREFIX = "VOL_";
-
             // specify a load file name
             string loadFile = $"{outDirectory}\\load.csv";
 
-            // folder structure will look like this:
-            /*   VOL_0001 
-             *      NATIVES
-             *      TEXT
-             *   VOL_0002
-             *      NATIVES
-             *      TEXT
-             *   ...     
-             */    
             // specify a batch size
             const int BATCH_SIZE = 200;
 
