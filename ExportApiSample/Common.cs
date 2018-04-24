@@ -9,7 +9,7 @@ using Relativity.Services.Objects.DataContracts;
 namespace ExportApiSample
 {
     /// <summary>
-    /// Contains common methods. Couldn't think of a better name.
+    /// Contains public common methods. Couldn't think of a better name.
     /// </summary>
     public static class Common
     {
@@ -51,7 +51,7 @@ namespace ExportApiSample
         /// </summary>
         /// <param name="num"></param>
         /// <returns></returns>
-        public static int NumDigits(long num)
+        public static int CountBase10Digits(long num)
         {
             if (num == 0)
             {

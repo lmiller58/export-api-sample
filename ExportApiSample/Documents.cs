@@ -84,25 +84,21 @@ namespace ExportApiSample
 
             long currBatchCount = 1;
 
-            bool done = false;
-            while (!done)
+            while (true)
             {
                 RelativityObjectSlim[] currentBatch =
                     await objMgr.RetrieveNextResultsBlockFromExportAsync(workspaceId, initResults.RunID, BATCH_SIZE);
 
-                if (currentBatch != null && currentBatch.Any())
+                if (currentBatch == null || !currentBatch.Any())
                 {
-                    await Console.Out.WriteLineAsync($"Exporting batch {currBatchCount} of {batchCountDefinitely}.");
-                    foreach (RelativityObjectSlim obj in currentBatch)
-                    {
-                        
-                    }
-                    currBatchCount++;
+                    break;
                 }
-                else
+                await Console.Out.WriteLineAsync($"Exporting batch {currBatchCount} of {batchCountDefinitely} (size {currentBatch.Length}).");
+                foreach (RelativityObjectSlim obj in currentBatch)
                 {
-                    done = true;
+
                 }
+                currBatchCount++;
             }
         }
 
