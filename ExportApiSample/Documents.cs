@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -55,8 +56,10 @@ namespace ExportApiSample
             const int BATCH_SIZE = 200;
 
             // get all of the fields on the Document object
-            IEnumerable<FieldRef> fields = 
+            IEnumerable<Field> fields = 
                 await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
+
+            IEnumerable<FieldRef> fieldRefs = fields.Select(x => new FieldRef {ArtifactID = x.ArtifactID});
 
             // query the workspace for all documents
             var query = new QueryRequest
@@ -65,7 +68,7 @@ namespace ExportApiSample
                 // don't need to return too many characters
                 // for export initialization
                 MaxCharactersForLongTextValues = 25,
-                Fields = fields
+                Fields = fieldRefs
             };
 
             const int startPage = 0; // index of starting page

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Relativity.Services;
 using Relativity.Services.Objects;
 using Relativity.Services.Objects.DataContracts;
+using FieldType = Relativity.Services.Objects.DataContracts.FieldType;
 
 namespace ExportApiSample
 {
@@ -18,6 +19,7 @@ namespace ExportApiSample
         /// </summary>
         public static class FieldTypes
         {
+            public const string CURRENCY = "Currency";
             public const string DATE = "Date";
             public const string DECIMAL = "Decimal";
             public const string FILE = "File";
@@ -35,7 +37,7 @@ namespace ExportApiSample
 
         public const int FIELD_OBJ_TYPE_ID = 14;
 
-        public static async Task<IEnumerable<FieldRef>> GetAllFieldsForObject(
+        public static async Task<IEnumerable<Field>> GetAllFieldsForObject(
             IObjectManager objMgr, 
             int workspaceId, 
             int objectTypeId)
@@ -53,18 +55,83 @@ namespace ExportApiSample
                 {
                     new FieldRef { Name = "Field Type" }
                 },
-                IncludeIDWindow = true  // just want the Artifact IDs
+                IncludeIDWindow = false 
             };
 
             int start = 0;
-            const int LENGTH = 100;
 
-            QueryResultSlim result = await objMgr.QuerySlimAsync(workspaceId, queryRequest, start, LENGTH);
+            // a document/RDO shouldn't have more than 1000 fields, I would hope
+            const int LENGTH = 1000;
+
+            var retVal = new List<Field>();
+
+            QueryResult result = await objMgr.QueryAsync(workspaceId, queryRequest, start, LENGTH);
+
+            foreach (RelativityObject field in result.Objects)
+            {
+
+                if (!field.FieldValuePairExists("Field Type"))
+                {
+                    continue;  // skip
+                }
+                // determine the field type
+                string fieldTypeName = field.FieldValues.First().Value.ToString();
+                FieldType type;
+                switch (fieldTypeName)
+                {
+                    case FieldTypes.CURRENCY:
+                        type = FieldType.Currency;
+                        break;
+                    case FieldTypes.DATE:
+                        type = FieldType.Date;
+                        break;
+                    case FieldTypes.DECIMAL:
+                        type = FieldType.Decimal;
+                        break;
+                    case FieldTypes.FILE:
+                        type = FieldType.File;
+                        break;
+                    case FieldTypes.FIXED_LENGTH_TXT:
+                        type = FieldType.FixedLengthText;
+                        break;
+                    case FieldTypes.LONG_TXT:
+                        type = FieldType.LongText;
+                        break;
+                    case FieldTypes.MULTI_CHOICE:
+                        type = FieldType.MultipleChoice;
+                        break;
+                    case FieldTypes.MULTI_OBJECT:
+                        type = FieldType.MultipleObject;
+                        break;
+                    case FieldTypes.SINGLE_CHOICE:
+                        type = FieldType.SingleChoice;
+                        break;
+                    case FieldTypes.SINGLE_OBJECT:
+                        type = FieldType.SingleObject;
+                        break;
+                    case FieldTypes.USER:
+                        type = FieldType.User;
+                        break;
+                    case FieldTypes.WHOLE_NUMBER:
+                        type = FieldType.WholeNumber;
+                        break;
+                    case FieldTypes.YES_NO:
+                        type = FieldType.YesNo;
+                        break;
+                    default:
+                        type = FieldType.Empty;
+                        break;
+                }
+
+                var fieldToAdd = new Field
+                {
+                    ArtifactID = field.ArtifactID,
+                    FieldType = type
+                };
+                retVal.Add(fieldToAdd);
+            }
             
-            // I think the IDWindow should include all of the docs...
-            return result
-                .IDWindow
-                .Select(id => new FieldRef {ArtifactID = id});
+            return retVal;
         }
 
 
