@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Relativity.Services.DataContracts;
 using Relativity.Services.Objects;
-using Relativity.Services.Objects.DataContracts;
 using Relativity.Services.ServiceProxy;
 
 namespace ExportApiSample

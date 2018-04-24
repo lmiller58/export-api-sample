@@ -44,7 +44,7 @@ namespace ExportApiSample
 
         /// <summary>
         /// Returns all of the fields for a given object type.
-        /// Does not include system types.
+        /// Does not include system fields.
         /// </summary>
         /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
