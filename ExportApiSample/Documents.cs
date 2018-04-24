@@ -36,7 +36,7 @@ namespace ExportApiSample
             string loadFile = $"{outDirectory}\\load.csv";
 
             // specify a batch size
-            const int BATCH_SIZE = 200;
+            const int BATCH_SIZE = 1000;
 
             // get all of the fields on the Document object
             List<Field> fields = 
@@ -94,27 +94,13 @@ namespace ExportApiSample
                 {
                     List<object> fieldValues = obj.Values;
 
-                    // this list of fields should be in the same order as that of our requests.
-                    if (fieldValues.Count != fields.Count)
-                    {
-                        string err = "Lengths of queried and returned fields do not match:\n" +
-                                    $"Queried: {fields.Count}\n" + 
-                                    $"Returned: {fieldValues.Count}";
-                        throw new ApplicationException(err);
-                    }
-
-                    for (int i = 0; i < fieldValues.Count; i++)
-                    {
-                        Field field = fields[i];
-                        object fieldValue = fieldValues[i];
-                        await Common.AppendToLoadFileAsync(
-                            objMgr, 
-                            workspaceId, 
-                            obj.ArtifactID, 
-                            fields, 
-                            fieldValues,
-                            loadFile);
-                    }
+                    await Common.AppendToLoadFileAsync(
+                        objMgr,
+                        workspaceId,
+                        obj.ArtifactID,
+                        fields,
+                        fieldValues,
+                        loadFile);
                 }
                 currBatchCount++;
             }

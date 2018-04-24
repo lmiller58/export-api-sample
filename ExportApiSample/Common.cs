@@ -176,6 +176,13 @@ namespace ExportApiSample
                 Field fieldName = fieldNames[i];
                 object fieldValue = fieldValues[i];
                 string fieldValAsStr = fieldValue?.ToString() ?? String.Empty;
+
+                if (String.IsNullOrEmpty(fieldValAsStr))
+                {
+                    rowData[i] = String.Empty;
+                    continue;
+                }
+
                 switch (fieldName.FieldType)
                 {
                     // types that can be directly 
@@ -220,12 +227,14 @@ namespace ExportApiSample
                     case FieldType.MultipleObject:
                     case FieldType.SingleObject:
                         // TODO: actual implementaion
-                        rowData[i] = fieldValAsStr;
+                        rowData[i] = "Not included";
                         break;
 
                     case FieldType.File:
-                        throw new NotImplementedException(
-                            "Export API does not support native file streaming yet.");
+                        //throw new NotImplementedException(
+                        //    "Export API does not support native file streaming yet.");
+                        rowData[i] = "Not included";
+                        break;
 
                     case FieldType.User:
                         JArray userFieldArr = JArray.Parse(fieldValAsStr);
@@ -260,7 +269,7 @@ namespace ExportApiSample
             }
 
             // write row to csv
-            File.AppendAllText(loadFilePath, String.Join(",", rowData));
+            File.AppendAllText(loadFilePath, Environment.NewLine + String.Join(",", rowData));
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -33,7 +34,22 @@ namespace ExportApiSample
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
                 const string outPutDir = @"C:\Data\Export";
-                Documents.ExportDataAsync(objMgr, workspaceId: 1017273, outDirectory:outPutDir).Wait();
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                try
+                {
+                    Documents.ExportDataAsync(objMgr, workspaceId: 1017273, outDirectory: outPutDir).Wait();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    if (e.InnerException != null)
+                    {
+                        Console.WriteLine(e.InnerException);
+                    }
+                }
+                stopwatch.Stop();
+                Console.WriteLine($"Elapsed: {stopwatch.Elapsed.Seconds}");
             }
 
             Pause();
