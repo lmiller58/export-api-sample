@@ -214,21 +214,8 @@ namespace ExportApiSample
                         rowData[i] = fieldValAsStr;
                         break;
                     case FieldType.FixedLengthText:
-                        // for some reason, we will get JSON
-                        // for some fixed-length fields, so we
-                        // need to clean them--this is whack
-                        //JObject jsonObj;
-                        //bool isValidJson = IsValidJsonObject(fieldValAsStr, out jsonObj);
-                        //if (isValidJson)
-                        //{
-                        //    // add quotes
-                        //    rowData[i] = "\"" + jsonObj["Name"].ToObject<string>() + "\"";
-                        //}
-                        //else
-                        {
-                            string cleaned = Regex.Replace(fieldValAsStr, @"\t|\n|\r", "");
-                            rowData[i] = "\"" + cleaned + "\"";
-                        }
+                        string cleaned = Regex.Replace(fieldValAsStr, @"\t|\n|\r", "");
+                        rowData[i] = "\"" + cleaned + "\"";                     
                         break;
                     case FieldType.LongText:
                         // get parent folder for the load file

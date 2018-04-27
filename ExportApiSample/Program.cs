@@ -32,7 +32,7 @@ namespace ExportApiSample
                 stopwatch.Start();
                 try
                 {
-                    Documents.ExportDataAsync(objMgr, workspaceId: 1017273, outDirectory: outPutDir).Wait();
+                    Documents.ExportAllDocsAndFieldsAsync(objMgr, workspaceId: 1017273, outDirectory: outPutDir).Wait();
                 }
                 catch (Exception e)
                 {

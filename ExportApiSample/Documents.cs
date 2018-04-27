@@ -13,14 +13,50 @@ namespace ExportApiSample
     {
         public const int DOC_TYPE_ID = 10;
 
-
         /// <summary>
-        /// Exports all metadata and long text of documents from a workspace
+        /// Returns the Control Number and Extracted Text fields
         /// </summary>
         /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
-        /// <param name="outDirectory">Directory to which we are exporting the files</param>
-        public static async Task ExportDataAsync(IObjectManager objMgr, int workspaceId, string outDirectory)
+        /// <returns></returns>
+        private static List<Field> GetMinimumFields()
+        {
+            List<Field> docFields = new List<Field>
+            {
+                new Field()
+                {
+                    ArtifactID = 1003667,
+                    Name = "Control Number",
+                    FieldType = FieldType.FixedLengthText
+                },
+                new Field()
+                {
+                    ArtifactID = 1003668,
+                    Name = "Extracted Text",
+                    FieldType = FieldType.LongText
+                }
+            };
+            return docFields;
+        }
+
+
+        /// <summary>
+        /// Generic export method
+        /// </summary>
+        /// <param name="objMgr"></param>
+        /// <param name="workspaceId"></param>
+        /// <param name="batchSize"></param>
+        /// <param name="fields"></param>
+        /// <param name="queryRequest"></param>
+        /// <param name="outDirectory"></param>
+        /// <returns></returns>
+        private static async Task ExportAsync(
+            IObjectManager objMgr,
+            int workspaceId,
+            int batchSize,
+            List<Field> fields, 
+            QueryRequest queryRequest,
+            string outDirectory)
         {
             // check if directory exists and create
             // it if it doesn't
@@ -32,55 +68,39 @@ namespace ExportApiSample
             // specify a load file name
             string loadFile = $"{outDirectory}\\load.csv";
 
-            // specify a batch size
-            const int BATCH_SIZE = 1000;
-
-            // get all of the fields on the Document object
-            List<Field> fields = 
-                await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
-
             // write all of the names of the fields to the load file
             // so they become column headings
             IEnumerable<string> fieldNames = fields.Select(x => x.Name);
             File.AppendAllText(loadFile, String.Join(",", fieldNames));
 
             // convert to FieldRefs for the query
-            IEnumerable<FieldRef> fieldRefs = fields.Select(x => new FieldRef {ArtifactID = x.ArtifactID});
-
-            // query the workspace for all documents
-            var query = new QueryRequest
-            {
-                ObjectType = new ObjectTypeRef { ArtifactTypeID = DOC_TYPE_ID },
-                // don't need to return too many characters
-                // for export initialization
-                MaxCharactersForLongTextValues = 25,
-                Fields = fieldRefs
-            };
+            IEnumerable<FieldRef> fieldRefs = fields.Select(x => new FieldRef { ArtifactID = x.ArtifactID });
+            queryRequest.Fields = fieldRefs;
 
             const int startPage = 0; // index of starting page
 
             // initialize export so we know how many documents total we 
             // are exporting
             ExportInitializationResults initResults =
-                await objMgr.InitializeExportAsync(workspaceId, query, startPage);
+                await objMgr.InitializeExportAsync(workspaceId, queryRequest, startPage);
 
             long totalCount = initResults.RecordCount;
 
             // if total count is evenly divisble by the 
             // batch size, then we don't have to create any batches
             // for the leftovers
-            long batchCountMaybe = totalCount / BATCH_SIZE;
-            long batchCountDefinitely = 
-                totalCount % BATCH_SIZE == 0 
-                ? batchCountMaybe 
-                : batchCountMaybe + 1;
+            long batchCountMaybe = totalCount / batchSize;
+            long batchCountDefinitely =
+                totalCount % batchSize == 0
+                    ? batchCountMaybe
+                    : batchCountMaybe + 1;
 
             long currBatchCount = 1;
 
             while (true)
             {
                 RelativityObjectSlim[] docBatch =
-                    await objMgr.RetrieveNextResultsBlockFromExportAsync(workspaceId, initResults.RunID, BATCH_SIZE);
+                    await objMgr.RetrieveNextResultsBlockFromExportAsync(workspaceId, initResults.RunID, batchSize);
 
                 if (docBatch == null || !docBatch.Any())
                 {
@@ -101,6 +121,71 @@ namespace ExportApiSample
                 }
                 currBatchCount++;
             }
+        }
+
+
+
+        /// <summary>
+        /// Exports all metadata and long text of documents from a workspace
+        /// </summary>
+        /// <param name="objMgr"></param>
+        /// <param name="workspaceId"></param>
+        /// <param name="outDirectory">Directory to which we are exporting the files</param>
+        public static async Task ExportAllDocsAndFieldsAsync(IObjectManager objMgr, int workspaceId, string outDirectory)
+        {
+            // specify a batch size
+            const int BATCH_SIZE = 1000;
+
+            // get all of the fields on the Document object
+            List<Field> fields =
+                await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
+
+
+            // query the workspace for all documents
+            var query = new QueryRequest
+            {
+                ObjectType = new ObjectTypeRef { ArtifactTypeID = DOC_TYPE_ID },
+                // don't need to return too many characters
+                // for export initialization
+                MaxCharactersForLongTextValues = 25
+            };
+
+            await ExportAsync(objMgr, workspaceId, BATCH_SIZE, fields, query, outDirectory);
+
+        }
+
+
+        /// <summary>
+        /// Export documents only from a saved search
+        /// </summary>
+        /// <param name="objMgr"></param>
+        /// <param name="workspaceId"></param>
+        /// <param name="savedSearchId"></param>
+        /// <param name="outDirectory"></param>
+        /// <returns></returns>
+        public static async Task ExportFromSavedSearchAsync(
+            IObjectManager objMgr, 
+            int workspaceId, 
+            int savedSearchId, 
+            string outDirectory)
+        {
+            // specify a batch size
+            const int BATCH_SIZE = 1000;
+
+            // get all of the fields on the Document object
+            List<Field> fields =
+                await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
+
+            var query = new QueryRequest
+            {
+                ObjectType = new ObjectTypeRef { ArtifactTypeID = DOC_TYPE_ID },
+                // don't need to return too many characters
+                // for export initialization
+                MaxCharactersForLongTextValues = 25,
+                ExecutingSavedSearchID = savedSearchId
+            };
+
+            await ExportAsync(objMgr, workspaceId, BATCH_SIZE, fields, query, outDirectory);
         }
 
     }
