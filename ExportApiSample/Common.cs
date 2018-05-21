@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -39,8 +42,32 @@ namespace ExportApiSample
             public const string YES_NO = "Yes/No";
         }
 
-
+        /// <summary>
+        /// The object type ID for fields
+        /// </summary>
         public const int FIELD_OBJ_TYPE_ID = 14;
+
+        private static readonly BlockingCollection<WriteJob> _writeJobs = 
+            new BlockingCollection<WriteJob>(10000);
+
+
+        public static void WriteToFile()
+        {
+            //foreach (WriteJob op in _writeJobs.GetConsumingEnumerable())
+            while (!_writeJobs.IsCompleted)
+            {
+                Console.WriteLine(_writeJobs.Count);
+                WriteJob op;
+                bool success = _writeJobs.TryTake(out op);
+                if (!success)
+                {
+                    Thread.Sleep(100);
+                    continue;
+                }
+
+                File.WriteAllText(op.Path, op.Content);
+            }
+        }
 
         /// <summary>
         /// Returns all of the fields for a given object type.
@@ -159,6 +186,14 @@ namespace ExportApiSample
             return retVal;
         }
 
+        /// <summary>
+        /// Lets this class know that we've retrieved all batches
+        /// </summary>
+        public static void CompleteAddingBatches()
+        {
+            _writeJobs.CompleteAdding();
+        }
+
 
         /// <summary>
         /// Appends the metadata to a file
@@ -169,7 +204,7 @@ namespace ExportApiSample
         /// <param name="fieldNames">List of field names associated with the objects</param>
         /// <param name="fieldValues">List of field values asscoiated with the objects</param>
         /// <param name="loadFilePath">Path to the load file</param>
-        public static async Task AppendToLoadFileAsync(
+        public static void AppendToLoadFileAsync(
             IObjectManager objMgr,
             int workspaceId,
             int objectId,
@@ -231,7 +266,7 @@ namespace ExportApiSample
                         // randomly generate a GUID for the file name
                         string textFileName = Guid.NewGuid().ToString() + fileExt;
                         string outputFile = outputFileFolder + @"\" + textFileName;
-                        await StreamToFileAsync(objMgr, workspaceId, objectId, fieldName, outputFile);
+                        AddToQueueAsync(objMgr, workspaceId, objectId, fieldName, outputFile);
                         string relativePath = @".\" + TEXT_FOLDER_NAME + @"\" + textFileName;
                         rowData[i] = relativePath;
                         break;
@@ -312,7 +347,7 @@ namespace ExportApiSample
 
 
         /// <summary>
-        /// Streams the text data to a file
+        /// Adds a write job to the queue
         /// </summary>
         /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
@@ -320,7 +355,7 @@ namespace ExportApiSample
         /// <param name="longTextField"></param>
         /// <param name="outputFile"></param>
         /// <returns></returns>
-        private static async Task StreamToFileAsync(
+        private static void AddToQueueAsync(
             IObjectManager objMgr,
             int workspaceId,
             int objectId,
@@ -339,28 +374,32 @@ namespace ExportApiSample
                 ArtifactID = longTextField.ArtifactID
             };
 
-            using (IKeplerStream ks = await objMgr.StreamLongTextAsync(
-                workspaceId, relativityObj, longTextFieldRef))
-            using (Stream s = await ks.GetStreamAsync())
+            using (IKeplerStream ks = objMgr.StreamLongTextAsync(
+                workspaceId, relativityObj, longTextFieldRef).Result)
+            using (Stream s = ks.GetStreamAsync().Result)
             using (var reader = new StreamReader(s))
-            using (var writer = new StreamWriter(outputFile, append: false))
+            //using (var writer = new StreamWriter(outputFile, append: false))
             {
-                const int BUFFER_SIZE = 5000;
-                char[] buffer = new char[BUFFER_SIZE];
+                //const int BUFFER_SIZE = 5000;
+                //char[] buffer = new char[BUFFER_SIZE];
 
-                int copied;
-                do
+                //int copied;
+                //do
+                //{
+                //    copied = reader.Read(buffer, 0, BUFFER_SIZE);
+                //    writer.Write(
+                //        copied == BUFFER_SIZE
+                //        ? buffer
+                //        : buffer.Take(copied).ToArray());
+                //    writer.Flush();
+                //} while (copied > 0);
+
+                string text = reader.ReadToEnd();
+                _writeJobs.Add(new WriteJob
                 {
-                    copied = reader.Read(buffer, 0, BUFFER_SIZE);
-                    writer.Write(
-                        copied == BUFFER_SIZE
-                        ? buffer
-                        : buffer.Take(copied).ToArray());
-                    writer.Flush();
-                } while (copied > 0);
-
-                //string text = reader.ReadToEnd();
-                //writer.Write(text);
+                    Path = outputFile,
+                    Content = text
+                });
             }
         }
 

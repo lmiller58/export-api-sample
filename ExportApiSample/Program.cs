@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
@@ -27,16 +28,41 @@ namespace ExportApiSample
                 return;
             }
 
-            ServicePointManager.DefaultConnectionLimit = 4;
+            Console.WriteLine("Successfully created service factory.");
+
+            // create multiple threads
+            int numThreads = 2;  // default 2
+            string numThreadsAsStr = configReader.GetValue("ThreadCount", typeof(string)).ToString();
+            if (!String.IsNullOrEmpty(numThreadsAsStr))
+            {
+                numThreads = Int32.Parse(numThreadsAsStr);
+            }
+
+            List<Thread> threads = new List<Thread>(numThreads);
+            for (int i = 0; i < numThreads; i++)
+            {
+                threads.Add(new Thread(Common.WriteToFile));
+            }
+
+
+            ServicePointManager.DefaultConnectionLimit = 32;
 
             int largeDocsSearch = 1239403;
             int smallDocsSearch = 1239404;
 
+            
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            // start threads
+            foreach (Thread t in threads)
+            {
+                t.Start();
+            }
+
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
-                const string outPutDir = @"C:\Data\Export";
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
+                string outPutDir = configReader.GetValue("ExportFolder", typeof(string)).ToString();
                 try
                 {
                     //Documents.ExportFromSavedSearchAsync(
@@ -44,7 +70,10 @@ namespace ExportApiSample
                     //    workspaceId: 1017273,
                     //    savedSearchId: smallDocsSearch,
                     //    outDirectory: outPutDir).Wait();
-                    Documents.ExportAllDocsAndFieldsAsync(objMgr, workspaceId: 1017273, outDirectory: outPutDir).Wait();
+                    Documents.ExportAllDocsAndFieldsAsync(
+                        objMgr, 
+                        workspaceId: 1017273, 
+                        outDirectory: outPutDir).Wait();
                 }
                 catch (Exception e)
                 {
@@ -54,10 +83,14 @@ namespace ExportApiSample
                         Console.WriteLine(e.InnerException);
                     }
                 }
-                stopwatch.Stop();
-                Console.WriteLine($"Elapsed: {stopwatch.Elapsed.TotalSeconds}");
-            }
 
+            }
+            foreach (Thread t in threads)
+            {
+                t.Join();
+            }
+            stopwatch.Stop();
+            Console.WriteLine($"Elapsed: {stopwatch.Elapsed.TotalSeconds}");
             Pause();
         }
 

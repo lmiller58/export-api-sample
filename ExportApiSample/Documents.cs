@@ -16,8 +16,6 @@ namespace ExportApiSample
         /// <summary>
         /// Returns the Control Number and Extracted Text fields
         /// </summary>
-        /// <param name="objMgr"></param>
-        /// <param name="workspaceId"></param>
         /// <returns></returns>
         private static List<Field> GetMinimumFields()
         {
@@ -50,7 +48,7 @@ namespace ExportApiSample
         /// <param name="queryRequest"></param>
         /// <param name="outDirectory"></param>
         /// <returns></returns>
-        private static async Task ExportAsync(
+        private static void Export(
             IObjectManager objMgr,
             int workspaceId,
             int batchSize,
@@ -82,7 +80,7 @@ namespace ExportApiSample
             // initialize export so we know how many documents total we 
             // are exporting
             ExportInitializationResults initResults =
-                await objMgr.InitializeExportAsync(workspaceId, queryRequest, startPage);
+                objMgr.InitializeExportAsync(workspaceId, queryRequest, startPage).Result;
 
             long totalCount = initResults.RecordCount;
 
@@ -100,18 +98,18 @@ namespace ExportApiSample
             while (true)
             {
                 RelativityObjectSlim[] docBatch =
-                    await objMgr.RetrieveNextResultsBlockFromExportAsync(workspaceId, initResults.RunID, batchSize);
+                    objMgr.RetrieveNextResultsBlockFromExportAsync(workspaceId, initResults.RunID, batchSize).Result;
 
                 if (docBatch == null || !docBatch.Any())
                 {
                     break;
                 }
-                await Console.Out.WriteLineAsync($"Exporting batch {currBatchCount} of {batchCountDefinitely} (size {docBatch.Length}).");
+                Console.WriteLine($"Exporting batch {currBatchCount} of {batchCountDefinitely} (size {docBatch.Length}).");
                 foreach (RelativityObjectSlim obj in docBatch)
                 {
                     List<object> fieldValues = obj.Values;
 
-                    await Common.AppendToLoadFileAsync(
+                    Common.AppendToLoadFileAsync(
                         objMgr,
                         workspaceId,
                         obj.ArtifactID,
@@ -121,6 +119,9 @@ namespace ExportApiSample
                 }
                 currBatchCount++;
             }
+
+            // finish up the queue
+            Common.CompleteAddingBatches();
 
             Directory.Delete(outDirectory, true);
         }
@@ -151,7 +152,7 @@ namespace ExportApiSample
                 MaxCharactersForLongTextValues = 25
             };
 
-            await ExportAsync(objMgr, workspaceId, BATCH_SIZE, fields, query, outDirectory);
+            Export(objMgr, workspaceId, BATCH_SIZE, fields, query, outDirectory);
 
         }
 
@@ -187,7 +188,7 @@ namespace ExportApiSample
                 Condition = $"(('Artifact ID' IN SAVEDSEARCH {savedSearchId}))"
             };
 
-            await ExportAsync(objMgr, workspaceId, BATCH_SIZE, fields, query, outDirectory);
+            Export(objMgr, workspaceId, BATCH_SIZE, fields, query, outDirectory);
         }
 
     }
