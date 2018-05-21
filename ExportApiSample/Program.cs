@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Threading;
 using Relativity.Services.Objects;
 using Relativity.Services.ServiceProxy;
 
@@ -10,12 +13,11 @@ namespace ExportApiSample
     {
         public static void Main(string[] args)
         {
-            // read credentials from file
-            const string credsFile = @"C:\Creds\export-api.txt";
-            string[] urlUserPassword = File.ReadAllLines(credsFile);
-            string url = urlUserPassword[0];
-            string user = urlUserPassword[1];
-            string password = urlUserPassword[2];
+            // read credentials from app.config
+            var configReader = new AppSettingsReader();
+            string url = configReader.GetValue("RelativityBaseURI", typeof(string)).ToString();
+            string user = configReader.GetValue("RelativityUserName", typeof(string)).ToString();
+            string password = configReader.GetValue("RelativityPassword", typeof(string)).ToString();
 
             ServiceFactory factory = GetServiceFactory(user, password, url);
             if (factory == null)
@@ -25,6 +27,11 @@ namespace ExportApiSample
                 return;
             }
 
+            ServicePointManager.DefaultConnectionLimit = 4;
+
+            int largeDocsSearch = 1239403;
+            int smallDocsSearch = 1239404;
+
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
                 const string outPutDir = @"C:\Data\Export";
@@ -32,6 +39,11 @@ namespace ExportApiSample
                 stopwatch.Start();
                 try
                 {
+                    //Documents.ExportFromSavedSearchAsync(
+                    //    objMgr,
+                    //    workspaceId: 1017273,
+                    //    savedSearchId: smallDocsSearch,
+                    //    outDirectory: outPutDir).Wait();
                     Documents.ExportAllDocsAndFieldsAsync(objMgr, workspaceId: 1017273, outDirectory: outPutDir).Wait();
                 }
                 catch (Exception e)

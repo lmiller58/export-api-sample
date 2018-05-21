@@ -121,6 +121,8 @@ namespace ExportApiSample
                 }
                 currBatchCount++;
             }
+
+            Directory.Delete(outDirectory, true);
         }
 
 
@@ -137,16 +139,15 @@ namespace ExportApiSample
             const int BATCH_SIZE = 1000;
 
             // get all of the fields on the Document object
-            List<Field> fields =
-                await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
+            //List<Field> fields =
+            //    await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
 
+            List<Field> fields = GetMinimumFields();
 
             // query the workspace for all documents
             var query = new QueryRequest
             {
                 ObjectType = new ObjectTypeRef { ArtifactTypeID = DOC_TYPE_ID },
-                // don't need to return too many characters
-                // for export initialization
                 MaxCharactersForLongTextValues = 25
             };
 
@@ -182,7 +183,8 @@ namespace ExportApiSample
                 // don't need to return too many characters
                 // for export initialization
                 MaxCharactersForLongTextValues = 25,
-                ExecutingSavedSearchID = savedSearchId
+                //ExecutingSavedSearchID = savedSearchId
+                Condition = $"(('Artifact ID' IN SAVEDSEARCH {savedSearchId}))"
             };
 
             await ExportAsync(objMgr, workspaceId, BATCH_SIZE, fields, query, outDirectory);

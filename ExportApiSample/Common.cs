@@ -353,11 +353,14 @@ namespace ExportApiSample
                 {
                     copied = reader.Read(buffer, 0, BUFFER_SIZE);
                     writer.Write(
-                        copied == BUFFER_SIZE 
-                        ? buffer 
+                        copied == BUFFER_SIZE
+                        ? buffer
                         : buffer.Take(copied).ToArray());
                     writer.Flush();
                 } while (copied > 0);
+
+                //string text = reader.ReadToEnd();
+                //writer.Write(text);
             }
         }
 
