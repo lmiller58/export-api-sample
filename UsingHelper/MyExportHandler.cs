@@ -27,8 +27,10 @@ namespace UsingHelper
         /// <summary>
         /// Creates a new export handler. The extracted text
         /// index is the 0-based index that points to
-        /// the extracted text field in the return field
-        /// collection.
+        /// the extracted text field in the returned field
+        /// collection. This field collection corresponds to
+        /// the field names collection in 
+        /// ExportApiHelperConfig.Fields
         /// </summary>
         /// <param name="extractedTextIndex"></param>
         public MyExportHandler(int extractedTextIndex)
