@@ -36,16 +36,16 @@
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Relativity.Kepler">
-      <HintPath>C:\Program Files\kCura Corporation\Relativity SDK\Export API\Relativity.Kepler.dll</HintPath>
+      <HintPath>..\dlls\Relativity.Kepler.dll</HintPath>
     </Reference>
     <Reference Include="Relativity.Services.DataContracts">
-      <HintPath>C:\Program Files\kCura Corporation\Relativity SDK\Export API\Relativity.Services.DataContracts.dll</HintPath>
+      <HintPath>..\dlls\Relativity.Services.DataContracts.dll</HintPath>
     </Reference>
     <Reference Include="Relativity.Services.Interfaces">
-      <HintPath>C:\Program Files\kCura Corporation\Relativity SDK\Export API\Relativity.Services.Interfaces.dll</HintPath>
+      <HintPath>..\dlls\Relativity.Services.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="Relativity.Services.ServiceProxy">
-      <HintPath>C:\Program Files\kCura Corporation\Relativity SDK\Export API\Relativity.Services.ServiceProxy.dll</HintPath>
+      <HintPath>..\dlls\Relativity.Services.ServiceProxy.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

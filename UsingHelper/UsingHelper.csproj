@@ -33,19 +33,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ExportApiHelper">
-      <HintPath>..\..\exportapihelper\ExportApiHelper\bin\Debug\ExportApiHelper.dll</HintPath>
+      <HintPath>..\dlls\ExportApiHelper.dll</HintPath>
     </Reference>
     <Reference Include="Relativity.Services.DataContracts, Version=9.6.142.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\kCura Corporation\Relativity SDK\Export API\Relativity.Services.DataContracts.dll</HintPath>
+      <HintPath>..\dlls\Relativity.Services.DataContracts.dll</HintPath>
     </Reference>
     <Reference Include="Relativity.Services.Interfaces, Version=9.6.142.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\kCura Corporation\Relativity SDK\Export API\Relativity.Services.Interfaces.dll</HintPath>
+      <HintPath>..\dlls\Relativity.Services.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="Relativity.Services.ServiceProxy, Version=1.0.1.467, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\kCura Corporation\Relativity SDK\Export API\Relativity.Services.ServiceProxy.dll</HintPath>
+      <HintPath>..\dlls\Relativity.Services.ServiceProxy.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
