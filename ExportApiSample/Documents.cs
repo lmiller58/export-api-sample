@@ -150,7 +150,10 @@ namespace ExportApiSample
             var query = new QueryRequest
             {
                 ObjectType = new ObjectTypeRef { ArtifactTypeID = DOC_TYPE_ID },
-                MaxCharactersForLongTextValues = 25
+
+                // extracted text with size greater than this many 
+                // bytes will be streamed
+                MaxCharactersForLongTextValues = 1000000
             };
 
             Export(objMgr, workspaceId, BATCH_SIZE, fields, query, outDirectory);
@@ -182,10 +185,11 @@ namespace ExportApiSample
             var query = new QueryRequest
             {
                 ObjectType = new ObjectTypeRef { ArtifactTypeID = DOC_TYPE_ID },
-                // don't need to return too many characters
-                // for export initialization
-                MaxCharactersForLongTextValues = 25,
-                //ExecutingSavedSearchID = savedSearchId
+
+                // extracted text with size greater than this many 
+                // bytes will be streamed
+                MaxCharactersForLongTextValues = 2000000,
+
                 Condition = $"(('Artifact ID' IN SAVEDSEARCH {savedSearchId}))"
             };
 
