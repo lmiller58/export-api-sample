@@ -19,6 +19,8 @@ namespace ExportApiSample
             string url = configReader.GetValue("RelativityBaseURI", typeof(string)).ToString();
             string user = configReader.GetValue("RelativityUserName", typeof(string)).ToString();
             string password = configReader.GetValue("RelativityPassword", typeof(string)).ToString();
+            string workspaceIdAsStr = configReader.GetValue("WorkspaceId", typeof(string)).ToString();
+            int workspaceId = Int32.Parse(workspaceIdAsStr);
 
             ServiceFactory factory = GetServiceFactory(user, password, url);
             if (factory == null)
@@ -41,38 +43,31 @@ namespace ExportApiSample
             List<Thread> threads = new List<Thread>(numThreads);
             for (int i = 0; i < numThreads; i++)
             {
-                threads.Add(new Thread(Common.WriteToFile));
+                threads.Add(new Thread(Common.StreamToFile));
             }
 
-
             ServicePointManager.DefaultConnectionLimit = 32;
-
-            int largeDocsSearch = 1239403;
-            int smallDocsSearch = 1239404;
-
             
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            // start threads
-            foreach (Thread t in threads)
-            {
-                t.Start();
-            }
-
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
+                // assign objMgr to static variable
+                Common.ObjMgr = objMgr;
                 string outPutDir = configReader.GetValue("ExportFolder", typeof(string)).ToString();
+
+                // start threads
+                foreach (Thread t in threads)
+                {
+                    t.Start();
+                }
+
                 try
                 {
-                    //Documents.ExportFromSavedSearchAsync(
-                    //    objMgr,
-                    //    workspaceId: 1017273,
-                    //    savedSearchId: smallDocsSearch,
-                    //    outDirectory: outPutDir).Wait();
-                    Documents.ExportAllDocsAndFieldsAsync(
+                    Documents.ExportAllDocs(
                         objMgr, 
-                        workspaceId: 1017273, 
+                        workspaceId: workspaceId, 
                         outDirectory: outPutDir).Wait();
                 }
                 catch (Exception e)

@@ -110,7 +110,6 @@ namespace ExportApiSample
                     List<object> fieldValues = obj.Values;
 
                     Common.AppendToLoadFileAsync(
-                        objMgr,
                         workspaceId,
                         obj.ArtifactID,
                         fields,
@@ -134,16 +133,16 @@ namespace ExportApiSample
         /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
         /// <param name="outDirectory">Directory to which we are exporting the files</param>
-        public static async Task ExportAllDocsAndFieldsAsync(IObjectManager objMgr, int workspaceId, string outDirectory)
+        public static async Task ExportAllDocs(IObjectManager objMgr, int workspaceId, string outDirectory)
         {
             // specify a batch size
             const int BATCH_SIZE = 1000;
 
             // get all of the fields on the Document object
-            //List<Field> fields =
-            //    await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
+            List<Field> fields =
+                await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
 
-            List<Field> fields = GetMinimumFields();
+            //List<Field> fields = GetMinimumFields();
 
             // query the workspace for all documents
             var query = new QueryRequest

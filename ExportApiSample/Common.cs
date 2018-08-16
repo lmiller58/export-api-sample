@@ -23,6 +23,16 @@ namespace ExportApiSample
     public static class Common
     {
         /// <summary>
+        /// The token returned if extracted text size exceeds cutoff value
+        /// </summary>
+        private const string _TOKEN = "#KCURA99DF2F0FEB88420388879F1282A55760#";
+
+        /// <summary>
+        /// Reference to object manager
+        /// </summary>
+        public static IObjectManager ObjMgr = null;
+
+        /// <summary>
         /// Aliases for the proper field names as shown in Relativity
         /// </summary>
         public static class FieldTypes
@@ -51,12 +61,24 @@ namespace ExportApiSample
             new BlockingCollection<WriteJob>(10000);
 
 
-        public static void WriteToFile()
+        /// <summary>
+        /// THIS is the method that needs to be what each
+        /// thread executes--streams the text to a file. Before
+        /// execution, it requires that Common.ObjMgr point to
+        /// a valid IObjectManager service.
+        /// </summary>
+        public static void StreamToFile()
         {
-            //foreach (WriteJob op in _writeJobs.GetConsumingEnumerable())
+            // check if Object Manager has been initialized
+            if (ObjMgr == null)
+            {
+                throw new ApplicationException(
+                    "Object manager is null");
+            }
+
+            const int BUFFER_SIZE = 5000;
             while (!_writeJobs.IsCompleted)
             {
-                Console.WriteLine(_writeJobs.Count);
                 WriteJob op;
                 bool success = _writeJobs.TryTake(out op);
                 if (!success)
@@ -65,9 +87,44 @@ namespace ExportApiSample
                     continue;
                 }
 
-                File.WriteAllText(op.Path, op.Content);
+                // stream
+
+                // create ref to object
+                var relativityObj = new RelativityObjectRef
+                {
+                    ArtifactID = op.DocumentId
+                };
+
+                // create ref to field
+                var longTextFieldRef = new FieldRef
+                {
+                    ArtifactID = op.LongTextFieldId
+                };
+
+                using (IKeplerStream ks = ObjMgr.StreamLongTextAsync(
+                    op.WorkspaceId, relativityObj, longTextFieldRef).Result)
+                using (Stream s = ks.GetStreamAsync().Result)
+                using (var reader = new StreamReader(s))
+                using (var writer = new StreamWriter(op.Path, append: false))
+                {
+                    
+                    char[] buffer = new char[BUFFER_SIZE];
+
+                    int copied;
+                    do
+                    {
+                        copied = reader.Read(buffer, 0, BUFFER_SIZE);
+                        writer.Write(
+                            copied == BUFFER_SIZE
+                            ? buffer
+                            : buffer.Take(copied).ToArray());
+                        writer.Flush();
+                    } while (copied > 0);
+
+                }
             }
         }
+
 
         /// <summary>
         /// Returns all of the fields for a given object type.
@@ -111,7 +168,7 @@ namespace ExportApiSample
 
             int start = 0;
 
-            // a document/RDO shouldn't have more than 1000 fields, I would hope
+            // a document shouldn't have more than 1000 fields, I would hope
             const int LENGTH = 1000;
 
             var retVal = new List<Field>();
@@ -196,16 +253,15 @@ namespace ExportApiSample
 
 
         /// <summary>
-        /// Appends the metadata to a file
+        /// Appends the metadata to a load file and writes the extracted
+        /// text to a separate file
         /// </summary>
-        /// <param name="objMgr">Object manager service</param>
         /// <param name="workspaceId">Artifact ID of the workspace</param>
         /// <param name="objectId">Artifact ID of the object</param>
         /// <param name="fieldNames">List of field names associated with the objects</param>
         /// <param name="fieldValues">List of field values asscoiated with the objects</param>
         /// <param name="loadFilePath">Path to the load file</param>
         public static void AppendToLoadFileAsync(
-            IObjectManager objMgr,
             int workspaceId,
             int objectId,
             List<Field> fieldNames, 
@@ -224,6 +280,15 @@ namespace ExportApiSample
             string[] rowData = new string[fieldNames.Count];
 
             const string TEXT_FOLDER_NAME = "TEXT";
+            const string fileExt = ".txt";
+            // get parent folder for the load file
+            string parentDir = Directory.GetParent(loadFilePath).FullName;
+            string outputFileFolder = parentDir + @"\" + TEXT_FOLDER_NAME;
+            // check if directory exists
+            if (!Directory.Exists(outputFileFolder))
+            {
+                Directory.CreateDirectory(outputFileFolder);
+            }
 
             for (int i = 0; i < fieldValues.Count; i++)
             {
@@ -252,21 +317,23 @@ namespace ExportApiSample
                         string cleaned = Regex.Replace(fieldValAsStr, @"\t|\n|\r", "");
                         rowData[i] = "\"" + cleaned + "\"";                     
                         break;
-                    case FieldType.LongText:
-                        // get parent folder for the load file
-                        string parentDir = Directory.GetParent(loadFilePath).FullName;
-                        string outputFileFolder = parentDir + @"\" + TEXT_FOLDER_NAME;
-                        // check if directory exists
-                        if (!Directory.Exists(outputFileFolder))
-                        {
-                            Directory.CreateDirectory(outputFileFolder);
-                        }
-                        const string fileExt = ".txt";
-
-                        // randomly generate a GUID for the file name
+                    case FieldType.LongText:                       
+                        // generate a GUID for the file name
                         string textFileName = Guid.NewGuid().ToString() + fileExt;
                         string outputFile = outputFileFolder + @"\" + textFileName;
-                        AddToQueueAsync(objMgr, workspaceId, objectId, fieldName, outputFile);
+                        if (fieldValAsStr.Equals(_TOKEN))
+                        {
+                            // this means that we've exceeded our specified cutoff value,
+                            // so we need to stream the long text
+                            AddToQueueAsync(workspaceId, objectId, fieldName.ArtifactID, outputFile);
+                        }
+                        else
+                        {
+                            // this means that we're getting back the text in the JSON,
+                            // so we'll just write it to the destination
+                            File.WriteAllText(outputFile, fieldValAsStr);
+                        }
+                        
                         string relativePath = @".\" + TEXT_FOLDER_NAME + @"\" + textFileName;
                         rowData[i] = relativePath;
                         break;
@@ -349,58 +416,26 @@ namespace ExportApiSample
         /// <summary>
         /// Adds a write job to the queue
         /// </summary>
-        /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
         /// <param name="objectId"></param>
         /// <param name="longTextField"></param>
         /// <param name="outputFile"></param>
         /// <returns></returns>
         private static void AddToQueueAsync(
-            IObjectManager objMgr,
             int workspaceId,
             int objectId,
-            Field longTextField, 
+            int longTextFieldId, 
             string outputFile)
         {
-            // create ref to object
-            var relativityObj = new RelativityObjectRef
+            var writeJob = new WriteJob
             {
-                ArtifactID = objectId
+                WorkspaceId = workspaceId,
+                DocumentId = objectId,
+                LongTextFieldId = longTextFieldId,
+                Path = outputFile
             };
 
-            // create ref to field
-            var longTextFieldRef = new FieldRef
-            {
-                ArtifactID = longTextField.ArtifactID
-            };
-
-            using (IKeplerStream ks = objMgr.StreamLongTextAsync(
-                workspaceId, relativityObj, longTextFieldRef).Result)
-            using (Stream s = ks.GetStreamAsync().Result)
-            using (var reader = new StreamReader(s))
-            //using (var writer = new StreamWriter(outputFile, append: false))
-            {
-                //const int BUFFER_SIZE = 5000;
-                //char[] buffer = new char[BUFFER_SIZE];
-
-                //int copied;
-                //do
-                //{
-                //    copied = reader.Read(buffer, 0, BUFFER_SIZE);
-                //    writer.Write(
-                //        copied == BUFFER_SIZE
-                //        ? buffer
-                //        : buffer.Take(copied).ToArray());
-                //    writer.Flush();
-                //} while (copied > 0);
-
-                string text = reader.ReadToEnd();
-                _writeJobs.Add(new WriteJob
-                {
-                    Path = outputFile,
-                    Content = text
-                });
-            }
+            _writeJobs.Add(writeJob);           
         }
 
 

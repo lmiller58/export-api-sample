@@ -35,6 +35,9 @@
     <Reference Include="ExportApiHelper">
       <HintPath>..\dlls\ExportApiHelper.dll</HintPath>
     </Reference>
+    <Reference Include="Relativity.Kepler">
+      <HintPath>..\dlls\Relativity.Kepler.dll</HintPath>
+    </Reference>
     <Reference Include="Relativity.Services.DataContracts, Version=9.6.142.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\dlls\Relativity.Services.DataContracts.dll</HintPath>
