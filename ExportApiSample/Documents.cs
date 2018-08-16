@@ -57,12 +57,12 @@ namespace ExportApiSample
             QueryRequest queryRequest,
             string outDirectory)
         {
-            // check if directory exists and create
-            // it if it doesn't
-            if (!Directory.Exists(outDirectory))
+            // check if directory exists and delete it if it does
+            if (Directory.Exists(outDirectory))
             {
-                Directory.CreateDirectory(outDirectory);
+                Directory.Delete(outDirectory, true);               
             }
+            Directory.CreateDirectory(outDirectory);
 
             // specify a load file name
             string loadFile = $"{outDirectory}\\load.csv";
@@ -123,7 +123,7 @@ namespace ExportApiSample
             // finish up the queue
             Common.CompleteAddingBatches();
 
-            Directory.Delete(outDirectory, true);
+            //Directory.Delete(outDirectory, true);
         }
 
 
