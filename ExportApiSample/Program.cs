@@ -69,7 +69,7 @@ namespace ExportApiSample
                     Documents.ExportAllDocs(
                         objMgr, 
                         workspaceId: workspaceId, 
-                        outDirectory: outPutDir).Wait();
+                        outDirectory: outPutDir);
 
                     foreach (Thread t in threads)
                     {

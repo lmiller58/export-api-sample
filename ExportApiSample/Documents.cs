@@ -60,6 +60,7 @@ namespace ExportApiSample
             // check if directory exists and delete it if it does
             if (Directory.Exists(outDirectory))
             {
+                Console.WriteLine("Deleting " + outDirectory);
                 Directory.Delete(outDirectory, true);               
             }
             Directory.CreateDirectory(outDirectory);
@@ -134,7 +135,7 @@ namespace ExportApiSample
         /// <param name="objMgr"></param>
         /// <param name="workspaceId"></param>
         /// <param name="outDirectory">Directory to which we are exporting the files</param>
-        public static async Task ExportAllDocs(IObjectManager objMgr, int workspaceId, string outDirectory)
+        public static void ExportAllDocs(IObjectManager objMgr, int workspaceId, string outDirectory)
         {
             // specify a batch size
             const int BATCH_SIZE = 1000;
