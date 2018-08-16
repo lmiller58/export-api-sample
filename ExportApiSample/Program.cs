@@ -32,6 +32,9 @@ namespace ExportApiSample
 
             Console.WriteLine("Successfully created service factory.");
 
+            // assign service factory to static variable in Common
+            Common.ServiceFactory = factory;
+
             // create multiple threads
             int numThreads = 2;  // default 2
             string numThreadsAsStr = configReader.GetValue("ThreadCount", typeof(string)).ToString();
@@ -53,22 +56,25 @@ namespace ExportApiSample
 
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
-                // assign objMgr to static variable
-                Common.ObjMgr = objMgr;
                 string outPutDir = configReader.GetValue("ExportFolder", typeof(string)).ToString();
-
-                // start threads
-                foreach (Thread t in threads)
-                {
-                    t.Start();
-                }
 
                 try
                 {
+                    // start threads
+                    foreach (Thread t in threads)
+                    {
+                        t.Start();
+                    }
+
                     Documents.ExportAllDocs(
                         objMgr, 
                         workspaceId: workspaceId, 
                         outDirectory: outPutDir).Wait();
+
+                    foreach (Thread t in threads)
+                    {
+                        t.Join();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -80,10 +86,7 @@ namespace ExportApiSample
                 }
 
             }
-            foreach (Thread t in threads)
-            {
-                t.Join();
-            }
+
             stopwatch.Stop();
             Console.WriteLine($"Elapsed: {stopwatch.Elapsed.TotalSeconds}");
             Pause();

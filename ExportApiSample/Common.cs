@@ -14,6 +14,7 @@ using Relativity.Services;
 using Relativity.Services.Objects;
 using Relativity.Services.Objects.DataContracts;
 using FieldType = Relativity.Services.Objects.DataContracts.FieldType;
+using Relativity.Services.ServiceProxy;
 
 namespace ExportApiSample
 {
@@ -28,9 +29,9 @@ namespace ExportApiSample
         private const string _TOKEN = "#KCURA99DF2F0FEB88420388879F1282A55760#";
 
         /// <summary>
-        /// Reference to object manager
+        /// Service factory used to create object manager services
         /// </summary>
-        public static IObjectManager ObjMgr = null;
+        public static ServiceFactory ServiceFactory;
 
         /// <summary>
         /// Aliases for the proper field names as shown in Relativity
@@ -69,13 +70,7 @@ namespace ExportApiSample
         /// </summary>
         public static void StreamToFile()
         {
-            // check if Object Manager has been initialized
-            if (ObjMgr == null)
-            {
-                throw new ApplicationException(
-                    "Object manager is null");
-            }
-
+            // buffer size for file IO
             const int BUFFER_SIZE = 5000;
             while (!_writeJobs.IsCompleted)
             {
@@ -101,13 +96,14 @@ namespace ExportApiSample
                     ArtifactID = op.LongTextFieldId
                 };
 
-                using (IKeplerStream ks = ObjMgr.StreamLongTextAsync(
+                // instantiate object manager service
+                using (IObjectManager objMgr = ServiceFactory.CreateProxy<IObjectManager>())
+                using (IKeplerStream ks = objMgr.StreamLongTextAsync(
                     op.WorkspaceId, relativityObj, longTextFieldRef).Result)
                 using (Stream s = ks.GetStreamAsync().Result)
                 using (var reader = new StreamReader(s))
                 using (var writer = new StreamWriter(op.Path, append: false))
                 {
-                    
                     char[] buffer = new char[BUFFER_SIZE];
 
                     int copied;

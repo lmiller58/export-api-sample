@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Relativity.Services.DataContracts.ImportExport;
 using Relativity.Services.Objects;
 using Relativity.Services.Objects.DataContracts;
+using Relativity.Services.DataContracts.DTOs.Results;
 
 namespace ExportApiSample
 {
@@ -139,10 +140,11 @@ namespace ExportApiSample
             const int BATCH_SIZE = 1000;
 
             // get all of the fields on the Document object
-            List<Field> fields =
-                await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
+            //List<Field> fields =
+            //    await Common.GetAllFieldsForObject(objMgr, workspaceId, DOC_TYPE_ID);
 
-            //List<Field> fields = GetMinimumFields();
+            // get only the Control Number and Extracted Text
+            List<Field> fields = GetMinimumFields();
 
             // query the workspace for all documents
             var query = new QueryRequest
