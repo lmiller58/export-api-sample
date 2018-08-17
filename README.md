@@ -4,6 +4,9 @@ Two .NET console apps demonstrating Export API consumption.
 ## Introduction
 The Export API is designed for efficient extracted text export from Relativity. It is able to export the text regardless of the storage method (SQL Server or DataGrid). 
 
+## Dependencies
+All of the DLLs you need should be in the `dlls` folder at the root. As versions update, however, we recommend using the libraries from your SDK. 
+
 ## UsingHelper
 Using the `Relativity.ObjectManager.ExportApiHelper` library is the recommended way to consume the Export API. It wraps a lot of the complexity that comes with managing threads and creating/disposing services. Currently, this sample does _not_ actually write the text to the file system. To run the sample, make sure you input your credentials in the app.config file. Here is an example:
 
