@@ -4,8 +4,9 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ExportApiHelper;
+using Relativity.ObjectManager.ExportApiHelper;
 using Relativity.Services.Objects.DataContracts;
+using Relativity.Services.ServiceProxy;
 
 namespace UsingHelper
 {
@@ -38,35 +39,26 @@ namespace UsingHelper
             var config = new ExportApiHelperConfig
             {
                 BlockSize = 1000,
-                Fields = new FieldAndType[]
+                QueryRequest = new QueryRequest
                 {
-                    new FieldAndType
+                    Fields = new FieldRef[]
                     {
-                        Field = new Relativity.Services.Objects.DataContracts.FieldRef
-                        {
-                            Name = "Control Number",
-                        },
-                        Type = FieldTypes.FixedLengthText
+                        new FieldRef { Name = "Control Number" },
+                        new FieldRef { Name = "Extracted Text" }
                     },
 
-                    new FieldAndType
-                    {
-                        Field = new FieldRef
-                        {
-                            Name = "Extracted Text"
-                        },
-                        Type = FieldTypes.LongText
-                    }
+                    // this is the cutoff value--anything greater 
+                    // than this many bytes will be streamed
+                    MaxCharactersForLongTextValues = 1000 * 1024
                 },
 
                 WorkspaceId = workspaceId,
-                MaximumInlineTextSize = 1024 * 100,
                 RelativityUrl = new Uri(url),
-                UserName = user,
-                UserPassword = password
+                Credentials = new UsernamePasswordCredentials(user, password),
+                ScaleFactor = 8
             };
 
-            ExportApiHelper.ExportApiHelper exportHelper = config.Create();
+            ExportApiHelper exportHelper = config.Create();
 
             var cts = new System.Threading.CancellationTokenSource();
 

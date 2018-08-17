@@ -1,6 +1,7 @@
 ﻿using System;
-using ExportApiHelper;
 using Relativity.Services.Objects.DataContracts;
+using Relativity.ObjectManager.ExportApiHelper;
+using Relativity.Services.DataContracts.DTOs.Results;
 
 namespace UsingHelper
 {
@@ -45,7 +46,7 @@ namespace UsingHelper
             Console.WriteLine($"Completed export: {complete}");
         }
 
-        public void Before(long itemCount)
+        public void Before(ExportInitializationResults results)
         {
             // check to make sure use has specified a non-negative index
             // for the extracted field
@@ -55,7 +56,8 @@ namespace UsingHelper
                     $"The specified extracted text index {this.ExtractedTextIndex} is not valid. " +
                     "Please specify the index of the extracted text field in the returned collection");
             }
-            Console.WriteLine($"Current itemCount: {itemCount}");
+            Console.WriteLine($"Current itemCount: {results.RecordCount}");
+            Console.WriteLine($"Run ID: {results.RunID}");
         }
 
         public void Error(string message, Exception exception)

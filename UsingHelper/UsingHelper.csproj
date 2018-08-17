@@ -32,11 +32,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ExportApiHelper">
-      <HintPath>..\dlls\ExportApiHelper.dll</HintPath>
-    </Reference>
     <Reference Include="Relativity.Kepler">
       <HintPath>..\dlls\Relativity.Kepler.dll</HintPath>
+    </Reference>
+    <Reference Include="Relativity.ObjectManager.ExportApiHelper">
+      <HintPath>..\dlls\Relativity.ObjectManager.ExportApiHelper.dll</HintPath>
     </Reference>
     <Reference Include="Relativity.Services.DataContracts, Version=9.6.142.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
