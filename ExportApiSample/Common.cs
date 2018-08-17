@@ -29,6 +29,19 @@ namespace ExportApiSample
         private const string _TOKEN = "#KCURA99DF2F0FEB88420388879F1282A55760#";
 
         /// <summary>
+        /// Used to keep track of the number of documents we've exported
+        /// </summary>
+        private static long _count = 0;
+
+        /// <summary>
+        /// The maximum number of digits possible. This is for padding so that 
+        /// documents show up in sorted order in the file system 
+        /// e.g. TEST_0001, TEST_0002, etc. instead of 
+        /// TEST_1, TEST_10, TEST_100, etc.
+        /// </summary>
+        public static int MaxDigits = 0;
+
+        /// <summary>
         /// Service factory used to create object manager services
         /// </summary>
         public static ServiceFactory ServiceFactory;
@@ -264,6 +277,8 @@ namespace ExportApiSample
             List<object> fieldValues, 
             string loadFilePath)
         {
+            _count++;
+
             // this list of fields should be in the same order as that of our requests.
             if (fieldValues.Count != fieldNames.Count)
             {
@@ -276,7 +291,8 @@ namespace ExportApiSample
             string[] rowData = new string[fieldNames.Count];
 
             const string TEXT_FOLDER_NAME = "TEXT";
-            const string fileExt = ".txt";
+            const string FILENAME_PREFIX = "REL_";
+            const string FILE_EXT = ".txt";
             // get parent folder for the load file
             string parentDir = Directory.GetParent(loadFilePath).FullName;
             string outputFileFolder = parentDir + @"\" + TEXT_FOLDER_NAME;
@@ -314,8 +330,8 @@ namespace ExportApiSample
                         rowData[i] = "\"" + cleaned + "\"";                     
                         break;
                     case FieldType.LongText:                       
-                        // generate a GUID for the file name
-                        string textFileName = Guid.NewGuid().ToString() + fileExt;
+                        // get identifier and create file name
+                        string textFileName = GenerateIdentifier(_count, FILENAME_PREFIX) + FILE_EXT;
                         string outputFile = outputFileFolder + @"\" + textFileName;
                         if (fieldValAsStr.Equals(_TOKEN))
                         {
@@ -451,6 +467,24 @@ namespace ExportApiSample
             num = Math.Abs(num);
 
             return (int)Math.Log10(num);
+        }
+
+
+        /// <summary>
+        /// Given a number, generate the proper identifer
+        /// </summary>
+        /// <param name="num"></param>
+        /// <param name="prefix"></param>
+        /// <returns>String containing the identifierreturns>
+        private static string GenerateIdentifier(long num, string prefix)
+        {
+            const char ZERO = '0';
+            int numDigits = CountBase10Digits(num);
+            int paddingSize = MaxDigits - numDigits;
+
+            string zeroPadding = new string(ZERO, paddingSize);
+            string identifier = prefix + zeroPadding + num.ToString();
+            return identifier;
         }
 
     }

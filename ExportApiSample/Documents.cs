@@ -86,6 +86,10 @@ namespace ExportApiSample
 
             long totalCount = initResults.RecordCount;
 
+            // assign totalCount's length (number of digits)
+            int numDigits = Common.CountBase10Digits(totalCount);
+            Common.MaxDigits = numDigits;
+
             // if total count is evenly divisble by the 
             // batch size, then we don't have to create any batches
             // for the leftovers
