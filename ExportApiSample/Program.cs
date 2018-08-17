@@ -53,6 +53,11 @@ namespace ExportApiSample
             
             var stopwatch = new Stopwatch();
             stopwatch.Start();
+            // start threads
+            foreach (Thread t in threads)
+            {
+                t.Start();
+            }
 
             using (IObjectManager objMgr = factory.CreateProxy<IObjectManager>())
             {
@@ -60,21 +65,10 @@ namespace ExportApiSample
 
                 try
                 {
-                    // start threads
-                    foreach (Thread t in threads)
-                    {
-                        t.Start();
-                    }
-
                     Documents.ExportAllDocs(
                         objMgr, 
                         workspaceId: workspaceId, 
                         outDirectory: outPutDir);
-
-                    foreach (Thread t in threads)
-                    {
-                        t.Join();
-                    }
                 }
                 catch (Exception e)
                 {
@@ -84,9 +78,12 @@ namespace ExportApiSample
                         Console.WriteLine(e.InnerException);
                     }
                 }
-
             }
 
+            foreach (Thread t in threads)
+            {
+                t.Join();
+            }
             stopwatch.Stop();
             Console.WriteLine($"Elapsed: {stopwatch.Elapsed.TotalSeconds}");
             Pause();
