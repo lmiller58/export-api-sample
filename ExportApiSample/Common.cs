@@ -77,9 +77,7 @@ namespace ExportApiSample
 
         /// <summary>
         /// THIS is the method that needs to be what each
-        /// thread executes--streams the text to a file. Before
-        /// execution, it requires that Common.ObjMgr point to
-        /// a valid IObjectManager service.
+        /// thread executes--streams the text to a file. 
         /// </summary>
         public static void StreamToFile()
         {
