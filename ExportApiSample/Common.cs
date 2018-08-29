@@ -277,7 +277,7 @@ namespace ExportApiSample
             List<object> fieldValues, 
             string loadFilePath)
         {
-            _count++;
+            Interlocked.Increment(ref _count);
 
             // this list of fields should be in the same order as that of our requests.
             if (fieldValues.Count != fieldNames.Count)
