@@ -1,8 +1,11 @@
-# Export API Sample
+#### _Attention: Please use this sample here: https://github.com/relativitydev/export-api-helper. This project is no longer being maintained._ 
+
+
+# Object Manager - Export API Sample
 Two .NET console apps demonstrating Export API consumption.
 
 ## Introduction
-The Export API is designed for efficient extracted text export from Relativity. It is able to export the text regardless of the storage method (SQL Server or DataGrid). 
+The Object Manager - Export API is designed for efficient extracted text export from Relativity. It is able to export the text regardless of the storage method (SQL Server or DataGrid). 
 
 ## Dependencies
 All of the DLLs you need should be in the `dlls` folder at the root. As versions update, however, we recommend using the libraries from your SDK. 
